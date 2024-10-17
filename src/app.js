@@ -6,10 +6,16 @@ const app = express();
 app.use("/user", userAuth);
 
 app.get("/user", (req, res) => {
-  res.send({
-    firstName: "John",
-    lastName: "Doe",
-  });
+  try {
+    // res.send({
+    //   firstName: "John",
+    //   lastName: "Doe",
+    // });
+    throw new Error("Error");
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Something Went Wrong");
+  }
 });
 
 app.post("/user", (req, res) => {
@@ -18,6 +24,13 @@ app.post("/user", (req, res) => {
 
 app.delete("/user", (req, res) => {
   res.send("User has been deleted.");
+});
+
+app.use("/", (err, req, res, next) => {
+  console.log("Error Middleware");
+  if (err) {
+    res.status(500).send("Something Went Wrong");
+  }
 });
 
 app.listen(7777, () => {
