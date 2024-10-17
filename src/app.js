@@ -1,6 +1,9 @@
 const express = require("express");
+const { userAuth } = require("./middlewares/auth");
 
 const app = express();
+
+app.use("/user", userAuth);
 
 app.get("/user", (req, res) => {
   res.send({
