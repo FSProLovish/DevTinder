@@ -12,6 +12,31 @@ const validateSignUpData = (req) => {
   }
 };
 
+const validateProfileEditData = (req) => {
+  const allowedEditFields = [
+    "firstName",
+    "lastName",
+    "emailId",
+    "photoUrl",
+    "gender",
+    "age",
+    "about",
+    "skill",
+  ];
+
+  const isEditAllowed = Object.keys(req.body).every((field) =>
+    allowedEditFields.includes(field)
+  );
+
+  return isEditAllowed;
+};
+
+const validatePassword = (password) => {
+  return validator.isStrongPassword(password);
+};
+
 module.exports = {
   validateSignUpData,
+  validateProfileEditData,
+  validatePassword,
 };
