@@ -7,8 +7,7 @@ const router = express.Router();
 router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
   try {
     const fromUserId = req.user._id;
-    const toUserId = req.params.toUserId;
-    const status = req.params.status;
+    const { toUserId, status } = req.params;
 
     // validation for allowed statuses
     const allowedStatuses = ["ignored", "interested"];
@@ -55,5 +54,47 @@ router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
     res.status(400).send("ERROR: " + err.message);
   }
 });
+
+router.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const { requestId, status } = req.params;
+
+      // validation for allowed statuses
+      const allowedStatuses = ["accepted", "rejected"];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Status is not allowed: " + status,
+        });
+      }
+
+      const connectionRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+
+      // If Connection Request Not Found
+      if (!connectionRequest) {
+        return res.status(404).json({
+          message: "Connection Request Not Found!",
+        });
+      }
+
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+
+      res.json({
+        message: "Connection Request " + status,
+        data,
+      });
+    } catch (err) {
+      res.status(400).send("ERROR: " + err.message);
+    }
+  }
+);
 
 module.exports = router;
