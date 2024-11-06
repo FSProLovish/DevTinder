@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest");
+const User = require("../models/user");
 const USER_SAFE_DATA = [
   "firstName",
   "lastName",
@@ -11,7 +12,7 @@ const USER_SAFE_DATA = [
   "about",
 ];
 
-// Get all the pending connection request for the loggedIn User
+// Get all the pending connection request API for the loggedIn User
 router.get("/user/requests/received", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -29,6 +30,7 @@ router.get("/user/requests/received", userAuth, async (req, res) => {
   }
 });
 
+// Get all the user connections API
 router.get("/user/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -49,6 +51,39 @@ router.get("/user/connections", userAuth, async (req, res) => {
     res.json({ data });
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
+  }
+});
+
+// Feed API
+router.get("/user/feed", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+
+    // Find all connection requests `sent` / `received`
+    const connectionRequests = await ConnectionRequest.find({
+      $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+    }).select("fromUserId toUserId");
+
+    const hideUsersFromFeedSet = new Set();
+    connectionRequests.forEach((req) => {
+      hideUsersFromFeedSet.add(req.fromUserId.toString());
+      hideUsersFromFeedSet.add(req.toUserId.toString());
+    });
+
+    const users = await User.find({
+      $and: [
+        { _id: { $nin: Array.from(hideUsersFromFeedSet) } },
+        { _id: { $ne: loggedInUser._id } },
+      ],
+    }).select(USER_SAFE_DATA);
+
+    res.json({
+      data: users,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: err.message,
+    });
   }
 });
 
