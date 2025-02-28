@@ -55,7 +55,7 @@ router.get("/user/connections", userAuth, async (req, res) => {
 });
 
 // Feed API
-router.get("/user/feed", userAuth, async (req, res) => {
+router.get("/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     const page = parseInt(req.query.page) || 1;

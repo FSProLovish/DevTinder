@@ -1,16 +1,16 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const secretKey = "DEV@TINDER786";
 
 const userAuth = async (req, res, next) => {
   try {
     const { token } = req.cookies;
     if (!token) {
-      throw new Error("Token is not valid!!");
+      return res.status(401).send("Please Login!");
     }
 
-    const decodeObj = await jwt.verify(token, secretKey);
-    const { _id } = decodeObj;
+    const decodedObj = await jwt.verify(token, process.env.JWT_SECRET);
+
+    const { _id } = decodedObj;
 
     const user = await User.findById(_id);
     if (!user) {
@@ -20,7 +20,7 @@ const userAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    res.status(400).send("Error: " + err.message);
+    res.status(400).send("ERROR: " + err.message);
   }
 };
 
